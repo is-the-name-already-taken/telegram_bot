@@ -13,7 +13,6 @@ env:
   HOST: ${{ secrets.SERVER_HOST }}
   USERNAME: ${{ secrets.SERVER_USER }}
   SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-  PORT: ${{ secrets.SSH_PORT }}
 
   APP_DIR: "${HOME}/app/${REPO_NAME}"
 
@@ -40,7 +39,7 @@ jobs:
           host: ${HOST}
           username: ${USERNAME}
           key: ${SSH_KEY}
-          port: ${PORT}
+          port: 64280
           source: ${REPO_NAME}
           target: ${APP_DIR}
 
@@ -50,7 +49,7 @@ jobs:
           host: ${HOST}
           username: ${USERNAME}
           key: ${SSH_KEY}
-          port: ${PORT}
+          port: 64280
           script: |
             export XDG_RUNTIME_DIR="/run/user/$(id -u)"
             export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"
