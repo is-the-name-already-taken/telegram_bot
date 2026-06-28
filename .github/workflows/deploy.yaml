@@ -1,0 +1,73 @@
+name: Deploy
+
+on:
+  #   push:
+  #     branches: [ main ]
+  workflow_dispatch:
+
+env:
+  GO_VERSION: "1.26"
+  REPO_NAME: ${{ github.event.repository.name }}
+  OWNER: ${{ github.repository_owner }}
+
+  HOST: ${{ secrets.SERVER_HOST }}
+  USERNAME: ${{ secrets.SERVER_USER }}
+  SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  PORT: ${{ secrets.SSH_PORT }}
+
+  APP_DIR: "${HOME}/app/${REPO_NAME}"
+
+jobs:
+  deploy:
+    if: github.event.repository.name != 'service_template'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache: true
+      - name: Build Go
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o ${REPO_NAME} ./main.go
+
+      - name: SCP
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${HOST}
+          username: ${USERNAME}
+          key: ${SSH_KEY}
+          port: ${PORT}
+          source: ${REPO_NAME}
+          target: ${APP_DIR}
+
+      - name: SSH and Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${HOST}
+          username: ${USERNAME}
+          key: ${SSH_KEY}
+          port: ${PORT}
+          script: |
+            export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+            export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"
+
+            SERVICE_FILE="${REPO_NAME}.service"
+            SYSTEMD_USER_DIR="$HOME/.config/systemd/user"
+
+            mkdir -p "${SYSTEMD_USER_DIR}"
+            ln -sf "${APP_DIR}/${SERVICE_FILE}" "${SYSTEMD_USER_DIR}/${SERVICE_FILE}"
+
+            systemctl --user daemon-reload
+            systemctl --user enable ${REPO_NAME}
+            systemctl --user restart ${REPO_NAME}
+
+            if systemctl --user is-active --quiet ${REPO_NAME}; then
+                echo "✅ Deployment Successful and Service is Running!"
+            else
+                echo "❌ Deployment Failed: Service is not running."
+                systemctl --user status ${REPO_NAME}
+            fi

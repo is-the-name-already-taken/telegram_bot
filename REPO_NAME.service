@@ -1,0 +1,17 @@
+[Unit]
+Description=REPO_NAME
+After=network-online.target
+
+[Service]
+WorkingDirectory=%h/app/REPO_NAME
+ExecStart=EXEC_START_COMMAND
+
+Restart=always
+RestartSec=5
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=REPO_NAME
+
+[Install]
+WantedBy=default.target
