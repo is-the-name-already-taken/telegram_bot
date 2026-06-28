@@ -1,17 +1,17 @@
 [Unit]
-Description=REPO_NAME
+Description=telegram bot
 After=network-online.target
 
 [Service]
-WorkingDirectory=%h/app/REPO_NAME
-ExecStart=EXEC_START_COMMAND
+WorkingDirectory=%h/app/telegram_bot
+ExecStart=%h/app/telegram_bot/main
 
 Restart=always
 RestartSec=5
 
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=REPO_NAME
+SyslogIdentifier=telegram_bot
 
 [Install]
 WantedBy=default.target
