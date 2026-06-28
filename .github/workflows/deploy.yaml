@@ -31,7 +31,7 @@ jobs:
           cache: true
       - name: Build Go
         run: |
-          GOOS=linux GOARCH=amd64 go build -o ${REPO_NAME} ./main.go
+          GOOS=linux GOARCH=amd64 go build -o ${REPO_NAME} ./${REPO_NAME}/main.go
 
       - name: SCP
         uses: appleboy/scp-action@v1.0.0
@@ -42,6 +42,7 @@ jobs:
           port: 64280
           source: ${REPO_NAME}
           target: ${APP_DIR}
+          overwrite: true
 
       - name: SSH and Deploy to Server
         uses: appleboy/ssh-action@master
